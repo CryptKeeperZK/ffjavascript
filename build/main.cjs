@@ -6,6 +6,7 @@ var crypto = require('crypto');
 var wasmcurves = require('wasmcurves');
 var os = require('os');
 var Worker = require('web-worker');
+var base64 = require('base64-js');
 var wasmbuilder = require('wasmbuilder');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
@@ -13,6 +14,7 @@ function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'defau
 var crypto__default = /*#__PURE__*/_interopDefaultLegacy(crypto);
 var os__default = /*#__PURE__*/_interopDefaultLegacy(os);
 var Worker__default = /*#__PURE__*/_interopDefaultLegacy(Worker);
+var base64__default = /*#__PURE__*/_interopDefaultLegacy(base64);
 
 /* global BigInt */
 const hexLen = [ 0, 1, 2, 2, 3, 3, 3, 3, 4 ,4 ,4 ,4 ,4 ,4 ,4 ,4];
@@ -4482,8 +4484,21 @@ async function buildThreadManager(wasm, singleThread) {
         tm.concurrency = concurrency;
 
         for (let i = 0; i<concurrency; i++) {
+            let base64Encoded = workerSource.split(",")[1];
 
-            tm.workers[i] = new Worker__default["default"](workerSource);
+            // Check if the length of the string is a multiple of 4
+            if (base64Encoded.length % 4 !== 0) {
+                // Add padding to the base64-encoded string
+                const padding = '='.repeat(4 - (base64Encoded.length % 4));
+                base64Encoded += padding;
+            }
+            const binaryString = base64__default["default"].toByteArray(base64Encoded);
+
+            const workerBlob = new Blob([binaryString], { type: 'application/javascript' });
+
+            const workerUrl = URL.createObjectURL(workerBlob);
+
+            tm.workers[i] = new Worker__default["default"](workerUrl);
 
             tm.workers[i].addEventListener("message", getOnMsg(i));
 
