@@ -1,5 +1,5 @@
 # ffjavascript
-Finite Field Library in Javascript
+Finite Field Library in Javascript, is a forked version from the main iden3/ffjavascript repo to make it work with Cryptkeeper Browser Extension.
 
 ## License
 
